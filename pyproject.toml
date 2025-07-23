@@ -1,6 +1,6 @@
 [project]
 name = "phis-introducing-med"
-version = "2025.7.23.0"
+version = "2025.7.23.1"
 description = "宇信慢病随访新建-引入用药"
 readme = "README.md"
 requires-python = ">=3.12"
