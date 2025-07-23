@@ -11,7 +11,8 @@ from kapybara.shortcuts import TimeoutException
 from phis_introducing_med.is_drug_name_similar import is_drug_name_similar
 
 # 新增：CSV文件路径
-OUTPUT_FILE = Path("./执行结果/用药记录.csv")
+OUTPUT_FILE = Path('./执行结果/用药记录.csv')
+
 
 def extract_medication_data(rows):
     """从用药记录行中提取药品数据"""
@@ -28,33 +29,31 @@ def extract_medication_data(rows):
             pass
     return medications
 
+
 def save_medication_records(sfzh, history_meds, outpatient_meds):
     """将收集到的用药记录保存到CSV文件"""
     try:
         OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
-        history_str = "; ".join([f"{m['name']} ({m['date']})" for m in history_meds])
-        outpatient_str = "; ".join([f"{m['name']} ({m['date']})" for m in outpatient_meds])
+        history_str = '; '.join([f'{m["name"]} ({m["date"]})' for m in history_meds])
+        outpatient_str = '; '.join(
+            [f'{m["name"]} ({m["date"]})' for m in outpatient_meds]
+        )
         file_exists = OUTPUT_FILE.exists()
         with open(OUTPUT_FILE, 'a', newline='', encoding='utf-8-sig') as f:
             writer = csv.writer(f)
             if not file_exists:
-                writer.writerow(["身份证号", "历史用药", "门诊用药"])
+                writer.writerow(['身份证号', '历史用药', '门诊用药'])
             writer.writerow([sfzh, history_str, outpatient_str])
-        print(f"用药记录已保存到: {OUTPUT_FILE}")
+        print(f'用药记录已保存到: {OUTPUT_FILE}')
     except Exception as e:
-        print(f"保存用药记录失败: {e}")
+        print(f'保存用药记录失败: {e}')
 
 
 def alert_element_exist(xpath: str) -> bool:
     driver = shared_data.driver
     try:
         element = WebDriverWait(driver, 3).until(
-            ec.visibility_of_element_located(
-                (
-                    By.XPATH,
-                    xpath
-                )
-            )
+            ec.visibility_of_element_located((By.XPATH, xpath))
         )
     except TimeoutException:
         return False
@@ -70,46 +69,50 @@ def _handle_post_save_popups(driver, yes_option):
     try:
         # 检查“药品名称不能为空”的弹窗
         if alert_element_exist('//span[contains(text(), "药品名称不能为空或无")]'):
-            print("错误：药品列表为空，无法保存。")
+            print('错误：药品列表为空，无法保存。')
             driver.find_element(By.XPATH, "//button[text()='确定']").click()
-            return (False, "empty_drug_list")
+            return (False, 'empty_drug_list')
 
         # 检查“本季度已做过慢病随访”的弹窗
         if alert_element_exist(f"//button[text()='{yes_option}']"):
             print(f"检测到重复随访弹窗，选择：'{yes_option}'")
             FormElement(f"//button[text()='{yes_option}']").click()
             if yes_option == '否':
-                return (False, "duplicate_followup_declined")
+                return (False, 'duplicate_followup_declined')
             # 如果选择了“是”，则可能还有后续弹窗，继续检查
-            time.sleep(1) # 等待下一个弹窗出现
+            time.sleep(1)  # 等待下一个弹窗出现
 
         # 检查“需要先保存随访”的弹窗
         if alert_element_exist('//span[contains(text(), "需要先")]'):
-            print("需要先保存随访，正在确认...")
+            print('需要先保存随访，正在确认...')
             driver.find_element(By.XPATH, '//button[contains(text(), "是")]').click()
             time.sleep(1)
             # 点击确认后的“确定”按钮
             driver.find_element(By.XPATH, "//button[text()='确定']").click()
-            print("用药情况已保存。")
+            print('用药情况已保存。')
             # 检查并关闭“是否加入到个人服务计划中”的弹窗
             time.sleep(0.5)
-            if alert_element_exist('//span[contains(text(), "是否加入到个人服务计划中")]'):
-                driver.find_element(By.XPATH, '//button[contains(text(), "否")]').click()
-            return (True, "saved_via_nested_dialog")
+            if alert_element_exist(
+                '//span[contains(text(), "是否加入到个人服务计划中")]'
+            ):
+                driver.find_element(
+                    By.XPATH, '//button[contains(text(), "否")]'
+                ).click()
+            return (True, 'saved_via_nested_dialog')
 
         # 检查通用的“确定”按钮，表示成功保存
         confirm_button = driver.find_elements(By.XPATH, "//button[text()='确定']")
         if confirm_button:
-            print("用药情况已保存。")
+            print('用药情况已保存。')
             confirm_button[0].click()
-            return (True, "saved_successfully")
+            return (True, 'saved_successfully')
 
     except Exception as e:
         # 捕获意外错误，例如元素在检查后立即消失
-        print(f"处理弹窗时发生未知错误: {e}")
-        return (True, "unknown_error") # 假设操作可继续，避免卡死
+        print(f'处理弹窗时发生未知错误: {e}')
+        return (True, 'unknown_error')  # 假设操作可继续，避免卡死
 
-    return (True, "no_popup_found") # 没有找到任何弹窗
+    return (True, 'no_popup_found')  # 没有找到任何弹窗
 
 
 """
@@ -129,7 +132,7 @@ def introducing_history_medication(
     driver.execute_script('arguments[0].click();', element)
     time.sleep(3.5)
 
-    all_outpatient_meds = [] # 用于存储所有门诊用药记录
+    all_outpatient_meds = []  # 用于存储所有门诊用药记录
     try:
         # 等待所有匹配的元素出现
         yp = WebDriverWait(driver, 8).until(
@@ -141,7 +144,7 @@ def introducing_history_medication(
             )
         )
         yp_number = len(yp)
-        all_outpatient_meds = extract_medication_data(yp) # 提取数据
+        all_outpatient_meds = extract_medication_data(yp)  # 提取数据
     except TimeoutException:
         yp_number = 0
 
@@ -249,7 +252,6 @@ def introducing_medication(driver, diseases_name, new_sf_data):
     if len(content) > 9 and '是否保存用药记录' in content[9]:
         save_records_option = content[9].replace('：', ':').split(':')[1].strip()
 
-
     print('本季度已做过慢病随访，是否继续保存:', yes)
 
     start_date = content[7].replace('：', ':').split(':')[1].strip()
@@ -311,7 +313,7 @@ def introducing_medication(driver, diseases_name, new_sf_data):
 
     clicked_drugs = set()  # 创建一个集合用于存储已经点击过的药品
     drug_counter = 0  # 引入药品计数器
-    all_history_meds = [] # 用于存储所有历史用药记录
+    all_history_meds = []  # 用于存储所有历史用药记录
 
     # 点击加载历史用药
     element = WebDriverWait(driver, 10).until(
@@ -334,9 +336,11 @@ def introducing_medication(driver, diseases_name, new_sf_data):
         )
         # 提取所有历史用药数据
         for group_div in yp_groups:
-            rows = group_div.find_elements(By.XPATH, ".//table[@class='x-grid3-row-table']/tbody/tr")
+            rows = group_div.find_elements(
+                By.XPATH, ".//table[@class='x-grid3-row-table']/tbody/tr"
+            )
             all_history_meds.extend(extract_medication_data(rows))
-        
+
         yp_number = len(all_history_meds)
 
     except TimeoutException:
@@ -355,9 +359,7 @@ def introducing_medication(driver, diseases_name, new_sf_data):
 
         # 点击用药的保存
         element = WebDriverWait(driver, 10).until(
-            ec.presence_of_element_located(
-                (By.XPATH, '//*[@id="medSave"]/div/div[1]')
-            )
+            ec.presence_of_element_located((By.XPATH, '//*[@id="medSave"]/div/div[1]'))
         )
         driver.execute_script('arguments[0].click();', element)
         time.sleep(1.5)
@@ -370,14 +372,14 @@ def introducing_medication(driver, diseases_name, new_sf_data):
 
         # 处理所有可能的弹窗
         status, message = _handle_post_save_popups(driver, yes)
-        
+
         # 根据选项保存用药记录
         if save_records_option == '是':
-            sfzh = new_sf_data.get('sfzh') # 假设身份证号在 new_sf_data 中
+            sfzh = new_sf_data.get('sfzh')  # 假设身份证号在 new_sf_data 中
             if sfzh:
                 save_medication_records(sfzh, all_history_meds, all_outpatient_meds)
             else:
-                print("警告：未找到身份证号，无法保存用药记录。")
+                print('警告：未找到身份证号，无法保存用药记录。')
 
         if not status:
             # 如果处理函数返回 False，则意味着操作应中止
@@ -503,9 +505,7 @@ def introducing_medication(driver, diseases_name, new_sf_data):
 
         # 点击用药的保存
         element = WebDriverWait(driver, 10).until(
-            ec.presence_of_element_located(
-                (By.XPATH, '//*[@id="medSave"]/div/div[1]')
-            )
+            ec.presence_of_element_located((By.XPATH, '//*[@id="medSave"]/div/div[1]'))
         )
         driver.execute_script('arguments[0].click();', element)
         time.sleep(1.5)
@@ -514,11 +514,11 @@ def introducing_medication(driver, diseases_name, new_sf_data):
 
         # 根据选项保存用药记录
         if save_records_option == '是':
-            sfzh = new_sf_data.get('sfzh') # 假设身份证号在 new_sf_data 中
+            sfzh = new_sf_data.get('sfzh')  # 假设身份证号在 new_sf_data 中
             if sfzh:
                 save_medication_records(sfzh, all_history_meds, all_outpatient_meds)
             else:
-                print("警告：未找到身份证号，无法保存用药记录。")
+                print('警告：未找到身份证号，无法保存用药记录。')
 
         if not status:
             # 如果处理函数返回 False，则意味着操作应中止

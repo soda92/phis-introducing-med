@@ -1,5 +1,6 @@
 import difflib
 
+
 def is_drug_name_similar(drug_name, drug_names_set, threshold=0.8):
     """
     判断一个药物名称是否与集合中的任何药物名称相似。
