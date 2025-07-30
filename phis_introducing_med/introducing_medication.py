@@ -181,7 +181,7 @@ def introducing_history_medication(
             else:
                 continue
 
-            if is_drug_name_similar(drug_name, clicked_drugs, threshold=0.8):
+            if is_drug_name_similar(drug_name, clicked_drugs):
                 continue
             if drug_name in drug_names_set and drug_name not in clicked_drugs:
                 print('正在引入:', drug_name)
@@ -427,7 +427,7 @@ def introducing_medication(driver, diseases_name, new_sf_data):
                 drug_name = drug_name.replace('（', '(').replace('）', ')')
                 # drug_name = re.sub(r'\(.*?\)', '', drug_name).strip()
 
-                if is_drug_name_similar(drug_name, clicked_drugs, threshold=0.8):
+                if is_drug_name_similar(drug_name, clicked_drugs):
                     continue
                 if drug_name in drug_names_set and drug_name not in clicked_drugs:
                     print('正在引入:', drug_name)

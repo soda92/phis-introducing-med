@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "soda-kapybara>=2025.7.22.1",
+    "yxmb-compatlib>=2025.7.30.6",
 ]
 
 [build-system]
