@@ -1,12 +1,6 @@
 import difflib
 from yxmb_compatlib.config import load_config
 
-# 加载配置
-config = load_config()
-# 从配置中获取药品相似度阈值，如果未找到则使用默认值 0.8
-MEDICINE_THRESHOLD = config.get('medicine', {}).get('name_similarity_threshold', 0.8)
-
-
 def is_drug_name_similar(drug_name, drug_names_set, threshold=None):
     """
     判断一个药物名称是否与集合中的任何药物名称相似。
@@ -18,6 +12,11 @@ def is_drug_name_similar(drug_name, drug_names_set, threshold=None):
     """
     # 如果未提供阈值，则使用从配置中加载的值
     if threshold is None:
+        # 加载配置
+        config = load_config()
+        # 从配置中获取药品相似度阈值，如果未找到则使用默认值 0.8
+        MEDICINE_THRESHOLD = config.get('medicine', {}).get('name_similarity_threshold', 0.8)
+
         threshold = MEDICINE_THRESHOLD
 
     for name in drug_names_set:
